@@ -1,3 +1,5 @@
+"""Utilities for filtering stocks using daily moving averages."""
+
 from typing import Iterable, List
 
 import pandas as pd

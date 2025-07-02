@@ -1,3 +1,5 @@
+"""Intraday scan helpers based on EMA crossover confirmation patterns."""
+
 from typing import Iterable, List
 
 import pandas as pd
