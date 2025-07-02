@@ -33,3 +33,12 @@ Run the scanner with notifications enabled:
 ```bash
 python run_scan.py --notify
 ```
+
+## Google Colab
+
+You can try the scanner in the browser using
+[Google Colab](https://colab.research.google.com/). A ready-to-run notebook is
+provided in `NiftyStocks_Colab.ipynb`.
+Open the notebook on Colab, execute the setup cells to install dependencies and
+optionally set the Telegram environment variables, then run the final cell to
+start the scan.
