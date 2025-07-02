@@ -1,5 +1,8 @@
-import pandas as pd
+"""Retrieve the official NSE F&O equity symbol list."""
+
 from typing import List
+
+import pandas as pd
 
 FNO_LIST_URL = "https://archives.nseindia.com/content/fo/fo_mktlots.csv"
 

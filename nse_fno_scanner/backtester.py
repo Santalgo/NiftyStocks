@@ -1,5 +1,8 @@
-import yfinance as yf
+"""Lightweight backtester for the EMA crossover strategy."""
+
 from typing import Tuple
+
+import yfinance as yf
 
 from .intraday_scanner import compute_emas, pattern_confirmed
 
