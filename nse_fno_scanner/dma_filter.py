@@ -1,0 +1,30 @@
+from typing import Iterable, List
+
+import pandas as pd
+import yfinance as yf
+from tqdm import tqdm
+
+
+def compute_dmas(data: pd.DataFrame) -> pd.DataFrame:
+    """Compute 50 and 200 day simple moving averages."""
+    df = data.copy()
+    df["50DMA"] = df["Close"].rolling(window=50).mean()
+    df["200DMA"] = df["Close"].rolling(window=200).mean()
+    return df
+
+
+def filter_by_dma(symbols: Iterable[str], offset: int = 1) -> List[str]:
+    """Filter symbols where 50DMA > 200DMA using last `offset` days excluded."""
+    shortlisted = []
+    for symbol in tqdm(list(symbols), desc="DMA filter"):
+        try:
+            df = yf.download(f"{symbol}.NS", period="300d", interval="1d", progress=False)
+        except Exception:
+            continue
+        if df.empty or len(df) < 200 + offset:
+            continue
+        df = compute_dmas(df)
+        row = df.iloc[-(offset + 1)]  # exclude recent `offset` days
+        if row["50DMA"] > row["200DMA"]:
+            shortlisted.append(symbol)
+    return shortlisted
