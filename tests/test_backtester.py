@@ -5,7 +5,7 @@ import yfinance as yf
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from nse_fno_scanner.backtester import backtest_strategy
+from nse_fno_scanner import backtest_strategy
 
 
 def test_backtest_strategy(monkeypatch):
