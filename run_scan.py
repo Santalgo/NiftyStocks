@@ -2,7 +2,6 @@
 import argparse
 from pathlib import Path
 
-from tqdm import tqdm
 
 from nse_fno_scanner.fetch_fno_list import fetch_fno_list
 from nse_fno_scanner.dma_filter import filter_by_dma
