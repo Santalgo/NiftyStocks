@@ -18,7 +18,15 @@ def predict_index_movement(shortlisted_count: int, threshold: int = 10) -> float
 
 def _pct_change(symbol: str) -> float:
     logger.debug("Downloading index data for %s", symbol)
-    df = yf.download(symbol, period="2d", interval="1d", progress=False)
+    df = yf.download(
+        symbol,
+        period="2d",
+        interval="1d",
+        progress=False,
+        multi_level_index=False,
+    )
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
     if df.empty or len(df) < 2:
         return 0.0
     return df["Close"].iloc[-1] / df["Close"].iloc[0] - 1
@@ -29,7 +37,15 @@ def compare_with_indices(symbols: List[str]) -> Dict[str, float]:
     changes = []
     for sym in symbols:
         logger.debug("Downloading change data for %s", sym)
-        df = yf.download(f"{sym}.NS", period="2d", interval="1d", progress=False)
+        df = yf.download(
+            f"{sym}.NS",
+            period="2d",
+            interval="1d",
+            progress=False,
+            multi_level_index=False,
+        )
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
         if df.empty or len(df) < 2:
             continue
         changes.append(df["Close"].iloc[-1] / df["Close"].iloc[0] - 1)

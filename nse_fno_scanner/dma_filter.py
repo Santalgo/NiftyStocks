@@ -25,7 +25,15 @@ def filter_by_dma(symbols: Iterable[str], offset: int = 1) -> List[str]:
     for symbol in tqdm(list(symbols), desc="DMA filter"):
         try:
             logger.debug("Downloading daily data for %s", symbol)
-            df = yf.download(f"{symbol}.NS", period="300d", interval="1d", progress=False)
+            df = yf.download(
+                f"{symbol}.NS",
+                period="300d",
+                interval="1d",
+                progress=False,
+                multi_level_index=False,
+            )
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
         except Exception as exc:
             logger.debug("Failed to download %s: %s", symbol, exc)
             continue

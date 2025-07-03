@@ -5,6 +5,7 @@ from typing import Tuple
 import logging
 
 import yfinance as yf
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,15 @@ def backtest_strategy(symbol: str, period: str = "6mo") -> Tuple[int, float, flo
     """
     try:
         logger.debug("Downloading backtest data for %s", symbol)
-        df = yf.download(f"{symbol}.NS", period=period, interval="1d", progress=False)
+        df = yf.download(
+            f"{symbol}.NS",
+            period=period,
+            interval="1d",
+            progress=False,
+            multi_level_index=False,
+        )
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
     except Exception as exc:
         logger.debug("Failed to download %s: %s", symbol, exc)
         return 0, 0.0, 0.0
