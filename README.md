@@ -48,6 +48,8 @@ such as the list shared at:
 ```
 https://drive.google.com/file/d/1f26r2NEPmMkZTBuh1yxoRBGsOhNoxynV/view?usp=sharing
 ```
+Links from Google Drive are downloaded automatically using the ``gdown``
+library, so the shared URL can be passed directly to ``--fno-url``.
 
 Debug messages are printed to the console. For quick printf-style messages
 within your own scripts you can use `nse_fno_scanner.printf`:

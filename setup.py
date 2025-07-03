@@ -9,6 +9,7 @@ setup(
         "pandas",
         "numpy",
         "tqdm",
+        "gdown",
     ],
     entry_points={
         "console_scripts": ["nse-fno-scan=run_scan:main"],

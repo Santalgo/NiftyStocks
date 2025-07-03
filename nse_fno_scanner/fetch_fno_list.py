@@ -5,10 +5,29 @@ from typing import List
 import logging
 
 import pandas as pd
+import tempfile
+import os
+
+import gdown
 
 FNO_LIST_URL = "https://archives.nseindia.com/content/fo/fo_mktlots.csv"
 
 logger = logging.getLogger(__name__)
+
+
+def _maybe_download_google_drive(url: str) -> str:
+    """Download Google Drive file if needed and return local path or original URL."""
+    if "drive.google.com" not in url:
+        return url
+
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
+    tmp.close()
+    try:
+        gdown.download(url, tmp.name, quiet=True, fuzzy=True)
+        return tmp.name
+    except Exception as exc:  # pragma: no cover - network errors
+        os.unlink(tmp.name)
+        raise RuntimeError(f"gdown download failed: {exc}") from exc
 
 
 def fetch_fno_list(url: str = FNO_LIST_URL) -> List[str]:
@@ -20,8 +39,11 @@ def fetch_fno_list(url: str = FNO_LIST_URL) -> List[str]:
         List of equity ticker symbols available in F&O segment.
     """
     logger.debug("Downloading F&O list from %s", url)
+    local_path = _maybe_download_google_drive(url)
     try:
-        df = pd.read_csv(url)
+        df = pd.read_csv(local_path)
+        if local_path != url and os.path.exists(local_path):
+            os.unlink(local_path)
     except Exception as exc:
         raise RuntimeError(f"Failed to fetch F&O list: {exc}") from exc
 
