@@ -34,6 +34,30 @@ Run the scanner with notifications enabled:
 python run_scan.py --notify
 ```
 
+Additional options are available:
+
+```
+--symbols  Comma separated tickers to scan instead of full F&O list
+--fno-url  Custom CSV URL for the F&O stock list
+--debug    Enable debug logging output
+```
+
+The ``--fno-url`` option also accepts plain text lists with one ticker per line,
+such as the list shared at:
+
+```
+https://drive.google.com/file/d/1f26r2NEPmMkZTBuh1yxoRBGsOhNoxynV/view?usp=sharing
+```
+
+Debug messages are printed to the console. For quick printf-style messages
+within your own scripts you can use `nse_fno_scanner.printf`:
+
+```python
+from nse_fno_scanner import printf
+
+printf("Scanning %s symbols", len(symbols))
+```
+
 ## Google Colab
 
 You can try the scanner in the browser using
