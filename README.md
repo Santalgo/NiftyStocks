@@ -42,6 +42,9 @@ Additional options are available:
 --debug    Enable debug logging output
 ```
 
+If a file named `fno_list.csv` is present in the project directory it will
+be used as the default F&O list, avoiding any downloads.
+
 The ``--fno-url`` option also accepts plain text lists with one ticker per line,
 such as the list shared at:
 
