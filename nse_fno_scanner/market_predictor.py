@@ -2,9 +2,13 @@ import os
 import math
 from typing import List, Dict
 
+import logging
+
 import pandas as pd
 import yfinance as yf
 from telegram import Bot
+
+logger = logging.getLogger(__name__)
 
 
 def predict_index_movement(shortlisted_count: int, threshold: int = 10) -> float:
@@ -13,6 +17,7 @@ def predict_index_movement(shortlisted_count: int, threshold: int = 10) -> float
 
 
 def _pct_change(symbol: str) -> float:
+    logger.debug("Downloading index data for %s", symbol)
     df = yf.download(symbol, period="2d", interval="1d", progress=False)
     if df.empty or len(df) < 2:
         return 0.0
@@ -23,6 +28,7 @@ def compare_with_indices(symbols: List[str]) -> Dict[str, float]:
     """Compare average stock change with NIFTY50 and BankNifty indices."""
     changes = []
     for sym in symbols:
+        logger.debug("Downloading change data for %s", sym)
         df = yf.download(f"{sym}.NS", period="2d", interval="1d", progress=False)
         if df.empty or len(df) < 2:
             continue

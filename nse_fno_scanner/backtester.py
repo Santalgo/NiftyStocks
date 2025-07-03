@@ -2,7 +2,11 @@
 
 from typing import Tuple
 
+import logging
+
 import yfinance as yf
+
+logger = logging.getLogger(__name__)
 
 from .intraday_scanner import compute_emas, pattern_confirmed
 
@@ -23,8 +27,10 @@ def backtest_strategy(symbol: str, period: str = "6mo") -> Tuple[int, float, flo
         Number of trades, win rate percentage, average return percentage.
     """
     try:
+        logger.debug("Downloading backtest data for %s", symbol)
         df = yf.download(f"{symbol}.NS", period=period, interval="1d", progress=False)
-    except Exception:
+    except Exception as exc:
+        logger.debug("Failed to download %s: %s", symbol, exc)
         return 0, 0.0, 0.0
     if df.empty or len(df) < 50:
         return 0, 0.0, 0.0
@@ -41,6 +47,7 @@ def backtest_strategy(symbol: str, period: str = "6mo") -> Tuple[int, float, flo
             entry = closes.iloc[i]
             exit_price = closes.iloc[i + 1]
             trades.append((exit_price - entry) / entry)
+            logger.debug("Trade for %s: entry %.2f exit %.2f", symbol, entry, exit_price)
 
     if not trades:
         return 0, 0.0, 0.0
