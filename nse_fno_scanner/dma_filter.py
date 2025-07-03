@@ -6,6 +6,8 @@ import logging
 
 import pandas as pd
 import yfinance as yf
+
+from .utils import flatten_yf
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
@@ -25,7 +27,10 @@ def filter_by_dma(symbols: Iterable[str], offset: int = 1) -> List[str]:
     for symbol in tqdm(list(symbols), desc="DMA filter"):
         try:
             logger.debug("Downloading daily data for %s", symbol)
-            df = yf.download(f"{symbol}.NS", period="300d", interval="1d", progress=False)
+            df = yf.download(
+                f"{symbol}.NS", period="300d", interval="1d", progress=False
+            )
+            df = flatten_yf(df)
         except Exception as exc:
             logger.debug("Failed to download %s: %s", symbol, exc)
             continue

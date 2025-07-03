@@ -6,6 +6,8 @@ import logging
 
 import pandas as pd
 import yfinance as yf
+
+from .utils import flatten_yf
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
@@ -40,6 +42,7 @@ def intraday_scan(symbols: Iterable[str]) -> List[str]:
                 interval="15m",
                 progress=False,
             )
+            df = flatten_yf(df)
         except Exception as exc:
             logger.debug("Failed to download %s: %s", symbol, exc)
             continue

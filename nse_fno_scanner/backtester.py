@@ -6,6 +6,8 @@ import logging
 
 import yfinance as yf
 
+from .utils import flatten_yf
+
 logger = logging.getLogger(__name__)
 
 from .intraday_scanner import compute_emas, pattern_confirmed
@@ -28,7 +30,10 @@ def backtest_strategy(symbol: str, period: str = "6mo") -> Tuple[int, float, flo
     """
     try:
         logger.debug("Downloading backtest data for %s", symbol)
-        df = yf.download(f"{symbol}.NS", period=period, interval="1d", progress=False)
+        df = yf.download(
+            f"{symbol}.NS", period=period, interval="1d", progress=False
+        )
+        df = flatten_yf(df)
     except Exception as exc:
         logger.debug("Failed to download %s: %s", symbol, exc)
         return 0, 0.0, 0.0

@@ -6,6 +6,8 @@ import logging
 
 import pandas as pd
 import yfinance as yf
+
+from .utils import flatten_yf
 from telegram import Bot
 
 logger = logging.getLogger(__name__)
@@ -19,6 +21,7 @@ def predict_index_movement(shortlisted_count: int, threshold: int = 10) -> float
 def _pct_change(symbol: str) -> float:
     logger.debug("Downloading index data for %s", symbol)
     df = yf.download(symbol, period="2d", interval="1d", progress=False)
+    df = flatten_yf(df)
     if df.empty or len(df) < 2:
         return 0.0
     return df["Close"].iloc[-1] / df["Close"].iloc[0] - 1
@@ -29,7 +32,10 @@ def compare_with_indices(symbols: List[str]) -> Dict[str, float]:
     changes = []
     for sym in symbols:
         logger.debug("Downloading change data for %s", sym)
-        df = yf.download(f"{sym}.NS", period="2d", interval="1d", progress=False)
+        df = yf.download(
+            f"{sym}.NS", period="2d", interval="1d", progress=False
+        )
+        df = flatten_yf(df)
         if df.empty or len(df) < 2:
             continue
         changes.append(df["Close"].iloc[-1] / df["Close"].iloc[0] - 1)
