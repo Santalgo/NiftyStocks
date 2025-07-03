@@ -39,7 +39,10 @@ def intraday_scan(symbols: Iterable[str]) -> List[str]:
                 period="3d",
                 interval="15m",
                 progress=False,
+                multi_level_index=False,
             )
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
         except Exception as exc:
             logger.debug("Failed to download %s: %s", symbol, exc)
             continue
