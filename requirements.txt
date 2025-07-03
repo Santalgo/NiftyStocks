@@ -3,3 +3,4 @@ pandas
 numpy
 tqdm
 python-telegram-bot
+gdown
