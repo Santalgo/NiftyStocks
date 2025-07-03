@@ -1,6 +1,7 @@
 """Retrieve the official NSE F&O equity symbol list."""
 
 from typing import List
+from pathlib import Path
 
 import logging
 
@@ -11,6 +12,7 @@ import os
 import gdown
 
 FNO_LIST_URL = "https://archives.nseindia.com/content/fo/fo_mktlots.csv"
+FNO_LOCAL_PATH = Path(__file__).resolve().parents[1] / "fno_list.csv"
 
 logger = logging.getLogger(__name__)
 
@@ -38,14 +40,19 @@ def fetch_fno_list(url: str = FNO_LIST_URL) -> List[str]:
     List[str]
         List of equity ticker symbols available in F&O segment.
     """
-    logger.debug("Downloading F&O list from %s", url)
-    local_path = _maybe_download_google_drive(url)
-    try:
-        df = pd.read_csv(local_path)
-        if local_path != url and os.path.exists(local_path):
-            os.unlink(local_path)
-    except Exception as exc:
-        raise RuntimeError(f"Failed to fetch F&O list: {exc}") from exc
+
+    if url == FNO_LIST_URL and FNO_LOCAL_PATH.exists():
+        logger.debug("Loading F&O list from %s", FNO_LOCAL_PATH)
+        df = pd.read_csv(FNO_LOCAL_PATH, header=None, names=["SYMBOL"])
+    else:
+        logger.debug("Downloading F&O list from %s", url)
+        local_path = _maybe_download_google_drive(url)
+        try:
+            df = pd.read_csv(local_path)
+            if local_path != url and os.path.exists(local_path):
+                os.unlink(local_path)
+        except Exception as exc:
+            raise RuntimeError(f"Failed to fetch F&O list: {exc}") from exc
 
     if "SYMBOL" in df.columns:
         col = df["SYMBOL"]
