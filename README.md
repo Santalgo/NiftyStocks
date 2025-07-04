@@ -50,6 +50,12 @@ Run the scanner with notifications enabled:
 python run_scan.py --notify
 ```
 
+To continuously run the scan every 15 minutes and print predictions, use
+
+```bash
+python run_scan.py --schedule-pred --freq 15
+```
+
 Additional options are available:
 
 ```
@@ -57,6 +63,10 @@ Additional options are available:
 --fno-url  Custom CSV URL for the F&O stock list
 --debug    Enable debug logging output
 --bt-period  Period of data for the backtester (default "6mo")
+--bt-interval  Data interval for the backtester
+--offset       Higher timeframe offset when checking DMAs
+--lower-offset Lower timeframe offset for intraday pattern
+--schedule-pred  Run scan periodically and print predictions
 ```
 
 If a file named `fno_list.csv` is present in the project directory it will

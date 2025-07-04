@@ -44,7 +44,11 @@ class EMABacktestStrategy(bt.Strategy):
 
 
 def backtest_strategy(
-    symbol: str, period: str = "6mo", fast: int = 20, slow: int = 50
+    symbol: str,
+    period: str = "6mo",
+    fast: int = 20,
+    slow: int = 50,
+    interval: str = "1d",
 ) -> Tuple[int, float, float]:
     """Backtest the intraday strategy on daily data for a symbol.
 
@@ -54,6 +58,8 @@ def backtest_strategy(
         Equity ticker symbol without NSE suffix.
     period : str, optional
         Period to download historical data for (default "6mo").
+    interval : str, optional
+        Data interval for the download (default ``"1d"``).
     fast : int, optional
         Fast EMA period for the strategy.
     slow : int, optional
@@ -69,7 +75,7 @@ def backtest_strategy(
         df = yf.download(
             f"{symbol}.NS",
             period=period,
-            interval="1d",
+            interval=interval,
             progress=False,
             multi_level_index=False,
         )

@@ -37,6 +37,10 @@ def run(
     higher_int: str = "1d",
     lower_int: str = "15m",
     bt_period: str = "6mo",
+    *,
+    offset: int = 1,
+    lower_offset: int = 0,
+    bt_interval: str = "1d",
 ) -> list[str]:
     """Run the scan and optionally notify/backtest.
 
@@ -52,6 +56,14 @@ def run(
         Interval for lower timeframe data.
     bt_period : str, optional
         Period of historical data used when backtesting.
+    offset : int, optional
+        Number of higher timeframe candles to ignore when applying moving
+        average conditions.
+    lower_offset : int, optional
+        Number of lower timeframe candles to ignore when checking intraday
+        pattern.
+    bt_interval : str, optional
+        Data interval used when downloading backtest data.
 
     Returns
     -------
@@ -74,6 +86,8 @@ def run(
         slow_period=slow,
         higher_interval=higher_int,
         lower_interval=lower_int,
+        offset=offset,
+        lower_offset=lower_offset,
     )
     logging.debug("Running intraday scan on %d symbols", len(symbols))
     results = intraday_scan(symbols)
@@ -87,7 +101,11 @@ def run(
         print("\nBacktest results:")
         for sym in results:
             trades, win_rate, avg_ret = backtest_strategy(
-                sym, period=bt_period, fast=fast, slow=slow
+                sym,
+                period=bt_period,
+                fast=fast,
+                slow=slow,
+                interval=bt_interval,
             )
             print(
                 f"{sym}: trades={trades}, win_rate={win_rate:.1f}%, avg_return={avg_ret:.2f}%"
@@ -166,6 +184,11 @@ def main() -> None:
         help="Run scan every 15 minutes",
     )
     parser.add_argument(
+        "--schedule-pred",
+        action="store_true",
+        help="Run scan every N minutes and print predictions",
+    )
+    parser.add_argument(
         "--fast",
         type=int,
         default=20,
@@ -193,6 +216,23 @@ def main() -> None:
         help="Period of historical data for backtesting",
     )
     parser.add_argument(
+        "--bt-interval",
+        default="1d",
+        help="Interval of data for backtesting",
+    )
+    parser.add_argument(
+        "--offset",
+        type=int,
+        default=1,
+        help="Higher timeframe offset in candles",
+    )
+    parser.add_argument(
+        "--lower-offset",
+        type=int,
+        default=0,
+        help="Lower timeframe offset in candles",
+    )
+    parser.add_argument(
         "--freq",
         type=int,
         default=15,
@@ -212,7 +252,25 @@ def main() -> None:
         help="Enable debug logging",
     )
     args = parser.parse_args()
-    if args.schedule:
+    if args.schedule_pred:
+        schedule_scan_with_prediction(
+            freq_minutes=args.freq,
+            output=args.output,
+            backtest=args.backtest,
+            notify=args.notify,
+            symbols=_parse_symbols(args.symbols),
+            fno_url=args.fno_url,
+            debug=args.debug,
+            fast=args.fast,
+            slow=args.slow,
+            higher_int=args.higher_int,
+            lower_int=args.lower_int,
+            bt_period=args.bt_period,
+            offset=args.offset,
+            lower_offset=args.lower_offset,
+            bt_interval=args.bt_interval,
+        )
+    elif args.schedule:
         schedule_scan(
             freq_minutes=args.freq,
             output=args.output,
@@ -226,6 +284,9 @@ def main() -> None:
             higher_int=args.higher_int,
             lower_int=args.lower_int,
             bt_period=args.bt_period,
+            offset=args.offset,
+            lower_offset=args.lower_offset,
+            bt_interval=args.bt_interval,
         )
     else:
         run(
@@ -240,6 +301,9 @@ def main() -> None:
             higher_int=args.higher_int,
             lower_int=args.lower_int,
             bt_period=args.bt_period,
+            offset=args.offset,
+            lower_offset=args.lower_offset,
+            bt_interval=args.bt_interval,
         )
 
 
