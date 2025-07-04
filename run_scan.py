@@ -119,6 +119,24 @@ def schedule_scan(freq_minutes: int = 15, **kwargs) -> None:
         time.sleep(freq_minutes * 60)
 
 
+def schedule_scan_with_prediction(freq_minutes: int = 15, **kwargs) -> None:
+    """Run :func:`run` periodically and print shortlisted stocks and prediction.
+
+    Parameters
+    ----------
+    freq_minutes : int, optional
+        Number of minutes between runs.
+    """
+    import time
+
+    while True:
+        results = run(**kwargs)
+        prob = predict_index_movement(len(results))
+        print(f"Stocks ({len(results)}): {', '.join(results)}")
+        print(f"Predicted market up move probability: {prob:.1%}")
+        time.sleep(freq_minutes * 60)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="NSE F&O bullish setup scanner")
     parser.add_argument(
