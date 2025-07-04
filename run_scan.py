@@ -99,6 +99,7 @@ def run(
 
     if backtest:
         print("\nBacktest results:")
+        log_lines = []
         for sym in results:
             trades, win_rate, avg_ret = backtest_strategy(
                 sym,
@@ -108,8 +109,12 @@ def run(
                 interval=bt_interval,
             )
             print(
-                f"{sym}: trades={trades}, win_rate={win_rate:.1f}%, avg_return={avg_ret:.2f}%"
+                f"{sym}: trades={trades}, avg_return={avg_ret * 100:.2f}%, win_rate={win_rate * 100:.1f}%"
             )
+            log_lines.append(
+                f"{sym},{trades},{avg_ret * 100:.2f},{win_rate * 100:.1f}"
+            )
+        Path("backtest_results.txt").write_text("\n".join(log_lines))
 
     if notify:
         prob = predict_index_movement(len(results))

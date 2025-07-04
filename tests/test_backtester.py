@@ -17,4 +17,4 @@ def test_backtest_strategy(monkeypatch):
     monkeypatch.setattr(yf, "download", fake_download)
     trades, win_rate, avg_ret = backtest_strategy("TEST")
     assert trades >= 0
-    assert 0.0 <= win_rate <= 100.0
+    assert 0.0 <= win_rate <= 1.0

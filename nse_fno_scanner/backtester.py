@@ -31,7 +31,19 @@ class EMABacktestStrategy(bt.Strategy):
     def next(self) -> None:
         if self.entry_price is not None:
             exit_price = self.data.close[0]
-            self.trades.append((exit_price - self.entry_price) / self.entry_price)
+            if self.entry_price:
+                ret = (exit_price - self.entry_price) / self.entry_price
+                if abs(ret) < 10:
+                    ret = round(ret, 4)
+                    self.trades.append(ret)
+                    logger.debug(
+                        "Trade %s -> %s: entry %.2f exit %.2f return %.2f%%",
+                        self.data.datetime.date(-1),
+                        self.data.datetime.date(0),
+                        self.entry_price,
+                        exit_price,
+                        ret * 100,
+                    )
             self.entry_price = None
             return
 
@@ -68,7 +80,8 @@ def backtest_strategy(
     Returns
     -------
     Tuple[int, float, float]
-        Number of trades, win rate percentage, average return percentage.
+        Number of trades, win rate as a fraction between 0 and 1,
+        average return per trade as a decimal fraction.
     """
     try:
         logger.debug("Downloading backtest data for %s", symbol)
@@ -98,6 +111,6 @@ def backtest_strategy(
     trades = strat.trades
     if not trades:
         return 0, 0.0, 0.0
-    win_rate = sum(1 for r in trades if r > 0) / len(trades) * 100
-    avg_return = sum(trades) / len(trades) * 100
+    win_rate = sum(r > 0 for r in trades) / len(trades)
+    avg_return = sum(trades) / len(trades)
     return len(trades), win_rate, avg_return
