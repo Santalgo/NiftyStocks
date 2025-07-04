@@ -11,10 +11,22 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 
-def compute_emas(data: pd.DataFrame) -> pd.DataFrame:
+def compute_emas(data: pd.DataFrame, fast: int = 20, slow: int = 50) -> pd.DataFrame:
+    """Return ``data`` with exponential moving averages added.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Data containing ``Close`` prices.
+    fast : int, optional
+        Period for the fast EMA. Defaults to ``20``.
+    slow : int, optional
+        Period for the slow EMA. Defaults to ``50``.
+    """
+
     df = data.copy()
-    df["EMA20"] = df["Close"].ewm(span=20, adjust=False).mean()
-    df["EMA50"] = df["Close"].ewm(span=50, adjust=False).mean()
+    df[f"EMA{fast}"] = df["Close"].ewm(span=fast, adjust=False).mean()
+    df[f"EMA{slow}"] = df["Close"].ewm(span=slow, adjust=False).mean()
     return df
 
 
