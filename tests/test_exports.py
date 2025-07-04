@@ -3,6 +3,7 @@ from nse_fno_scanner import (
     filter_by_dma,
     intraday_scan,
     backtest_strategy,
+    schedule_scan_with_prediction,
     printf,
 )
 
@@ -12,4 +13,5 @@ def test_root_exports_callable():
     assert callable(filter_by_dma)
     assert callable(intraday_scan)
     assert callable(backtest_strategy)
+    assert callable(schedule_scan_with_prediction)
     assert callable(printf)

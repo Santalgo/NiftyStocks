@@ -10,6 +10,7 @@ from .market_predictor import (
     send_telegram_message,
 )
 from .utils import printf
+from run_scan import schedule_scan_with_prediction
 
 __all__ = [
     "fetch_fno_list",
@@ -19,5 +20,6 @@ __all__ = [
     "predict_index_movement",
     "compare_with_indices",
     "send_telegram_message",
+    "schedule_scan_with_prediction",
     "printf",
 ]

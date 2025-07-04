@@ -35,3 +35,17 @@ def test_filter_by_dma_handles_multiindex(monkeypatch):
     monkeypatch.setattr(yf, "download", fake_download)
     out = filter_by_dma(["TEST"], offset=1)
     assert out == ["TEST"]
+
+
+def test_filter_by_dma_lower_offset(monkeypatch):
+    daily = pd.DataFrame({"Close": range(1, 61), "Open": range(1, 61)})
+    intraday = pd.DataFrame({"Close": range(1, 61)})
+
+    def fake_download(symbol, *args, **kwargs):
+        if kwargs.get("interval") == "1d":
+            return daily
+        return intraday
+
+    monkeypatch.setattr(yf, "download", fake_download)
+    out = filter_by_dma(["TEST"], offset=1, lower_offset=1)
+    assert out == ["TEST"]

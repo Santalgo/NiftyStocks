@@ -32,6 +32,7 @@ def filter_by_dma(
     lower_interval: str = "15m",
     higher_period: str = "100d",
     lower_period: str = "3d",
+    lower_offset: int = 0,
 ) -> List[str]:
     """Filter symbols using daily and intraday moving averages.
 
@@ -54,6 +55,9 @@ def filter_by_dma(
         Historical period for the higher timeframe download. Defaults to ``100d``.
     lower_period : str, optional
         Historical period for the lower timeframe download. Defaults to ``3d``.
+    lower_offset : int, optional
+        Number of most recent lower timeframe candles to ignore when evaluating
+        intraday conditions. Defaults to ``0``.
 
     Returns
     -------
@@ -97,14 +101,14 @@ def filter_by_dma(
         except Exception as exc:
             logger.debug("Failed to download intraday %s: %s", symbol, exc)
             continue
-        if intra.empty or len(intra) < slow_period:
+        if intra.empty or len(intra) < slow_period or len(intra) <= lower_offset + 4:
             continue
-
         intra = compute_emas(intra, fast=fast_period, slow=slow_period)
-        last_row = intra.iloc[-1]
+        subset = intra.iloc[: -(lower_offset)] if lower_offset else intra
+        last_row = intra.iloc[-(lower_offset + 1)]
         if (
             last_row[f"EMA{fast_period}"] >= last_row[f"EMA{slow_period}"]
-            and pattern_confirmed(intra)
+            and pattern_confirmed(subset)
         ):
             shortlisted.append(symbol)
             logger.debug("%s passed DMA filter", symbol)
