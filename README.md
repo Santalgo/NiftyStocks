@@ -124,3 +124,5 @@ experiment with the scanner interactively.
 
 The same instructions are available in [docs/tutorial.md](docs/tutorial.md) if
 you prefer a standalone document.
+For a deeper explanation of each option, see
+[docs/detailed_tutorial.md](docs/detailed_tutorial.md).
