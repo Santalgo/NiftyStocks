@@ -36,6 +36,7 @@ def run(
     slow: int = 50,
     higher_int: str = "1d",
     lower_int: str = "15m",
+    bt_period: str = "6mo",
 ) -> list[str]:
     """Run the scan and optionally notify/backtest.
 
@@ -49,6 +50,8 @@ def run(
         Interval for higher timeframe data.
     lower_int : str, optional
         Interval for lower timeframe data.
+    bt_period : str, optional
+        Period of historical data used when backtesting.
 
     Returns
     -------
@@ -83,7 +86,9 @@ def run(
     if backtest:
         print("\nBacktest results:")
         for sym in results:
-            trades, win_rate, avg_ret = backtest_strategy(sym)
+            trades, win_rate, avg_ret = backtest_strategy(
+                sym, period=bt_period, fast=fast, slow=slow
+            )
             print(
                 f"{sym}: trades={trades}, win_rate={win_rate:.1f}%, avg_return={avg_ret:.2f}%"
             )
@@ -183,6 +188,11 @@ def main() -> None:
         help="Interval for lower timeframe (e.g. 15m)",
     )
     parser.add_argument(
+        "--bt-period",
+        default="6mo",
+        help="Period of historical data for backtesting",
+    )
+    parser.add_argument(
         "--freq",
         type=int,
         default=15,
@@ -215,6 +225,7 @@ def main() -> None:
             slow=args.slow,
             higher_int=args.higher_int,
             lower_int=args.lower_int,
+            bt_period=args.bt_period,
         )
     else:
         run(
@@ -228,6 +239,7 @@ def main() -> None:
             slow=args.slow,
             higher_int=args.higher_int,
             lower_int=args.lower_int,
+            bt_period=args.bt_period,
         )
 
 

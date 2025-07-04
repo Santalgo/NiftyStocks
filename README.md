@@ -56,6 +56,7 @@ Additional options are available:
 --symbols  Comma separated tickers to scan instead of full F&O list
 --fno-url  Custom CSV URL for the F&O stock list
 --debug    Enable debug logging output
+--bt-period  Period of data for the backtester (default "6mo")
 ```
 
 If a file named `fno_list.csv` is present in the project directory it will
