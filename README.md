@@ -2,6 +2,22 @@
 
 This repository provides a simple scanner for NSE F&O stocks looking for bullish setups based on daily and intraday moving averages.
 
+The project is helpful when you want to quickly identify stocks gaining upward
+momentum on the National Stock Exchange of India. It can run from the command
+line, inside a Jupyter notebook or in Google Colab.
+
+## Use Cases
+
+* **Daily market scan** – run the script each morning to get a list of F&O
+  stocks trending above key moving averages.
+* **Telegram alerts** – combine with the ``--notify`` option to receive a quick
+  summary of potential opportunities directly in Telegram.
+* **Custom symbol list** – supply a CSV file or a comma separated list of
+  tickers when you want to focus on a subset of stocks.
+* **Research and backtesting** – import the package in your own Python scripts
+  to experiment with the moving‑average filters or historical data used by the
+  scanner.
+
 ## Usage
 
 Install dependencies and run the scanner:
@@ -71,3 +87,29 @@ provided in `NiftyStocks_Colab.ipynb`.
 Open the notebook on Colab, execute the setup cells to install dependencies and
 optionally set the Telegram environment variables, then run the final cell to
 start the scan.
+
+## Tutorial
+
+1. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. **Run the scanner**
+   ```bash
+   python run_scan.py
+   ```
+   The results are saved to `scan_results.txt` in the project directory.
+3. **Enable Telegram notifications** *(optional)*
+   ```bash
+   export TELEGRAM_TOKEN="<your-bot-token>"
+   export TELEGRAM_CHAT_ID="<target-chat-id>"
+   python run_scan.py --notify
+   ```
+   You will receive a short summary message once the scan completes.
+
+For notebook users, open `NiftyStocks_Colab.ipynb` on Colab and execute the
+cells in order. The notebook mirrors the same steps and provides a simple way to
+experiment with the scanner interactively.
+
+The same instructions are available in [docs/tutorial.md](docs/tutorial.md) if
+you prefer a standalone document.
