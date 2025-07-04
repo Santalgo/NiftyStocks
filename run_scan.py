@@ -1,4 +1,5 @@
 """CLI entry point for running the F&O bullish setup scanner."""
+
 import argparse
 import logging
 from pathlib import Path
@@ -34,13 +35,9 @@ def run(
     debug: bool = False,
     fast: int = 20,
     slow: int = 50,
-    higher_int: str = "1d",
-    lower_int: str = "15m",
-    bt_period: str = "6mo",
     *,
     offset: int = 1,
-    lower_offset: int = 0,
-    bt_interval: str = "1d",
+    interval: str = "15m",
 ) -> list[str]:
     """Run the scan and optionally notify/backtest.
 
@@ -50,20 +47,11 @@ def run(
         Fast EMA period for moving average checks.
     slow : int, optional
         Slow EMA period for moving average checks.
-    higher_int : str, optional
-        Interval for higher timeframe data.
-    lower_int : str, optional
-        Interval for lower timeframe data.
-    bt_period : str, optional
-        Period of historical data used when backtesting.
     offset : int, optional
         Number of higher timeframe candles to ignore when applying moving
         average conditions.
-    lower_offset : int, optional
-        Number of lower timeframe candles to ignore when checking intraday
-        pattern.
-    bt_interval : str, optional
-        Data interval used when downloading backtest data.
+    interval : str, optional
+        Data interval for intraday scanning and backtesting.
 
     Returns
     -------
@@ -75,22 +63,12 @@ def run(
 
     if symbols is None:
         logging.debug("Fetching F&O list")
-        if fno_url:
-            symbols = fetch_fno_list(url=fno_url)
-        else:
-            symbols = fetch_fno_list()
-    logging.debug("Filtering %d symbols by DMA", len(symbols))
-    symbols = filter_by_dma(
-        symbols,
-        fast_period=fast,
-        slow_period=slow,
-        higher_interval=higher_int,
-        lower_interval=lower_int,
-        offset=offset,
-        lower_offset=lower_offset,
-    )
+        symbols = fetch_fno_list(url=fno_url) if fno_url else fetch_fno_list()
+
+    logging.debug("Running daily DMA filter on %d symbols", len(symbols))
+    symbols = filter_by_dma(symbols, offset=offset, fast_period=fast, slow_period=slow)
     logging.debug("Running intraday scan on %d symbols", len(symbols))
-    results = intraday_scan(symbols)
+    results = intraday_scan(symbols, interval=interval)
 
     output.write_text("\n".join(results))
     print(f"Shortlisted stocks ({len(results)}):")
@@ -103,17 +81,15 @@ def run(
         for sym in results:
             trades, win_rate, avg_ret = backtest_strategy(
                 sym,
-                period=bt_period,
+                days=5,
+                interval=interval,
                 fast=fast,
                 slow=slow,
-                interval=bt_interval,
             )
             print(
                 f"{sym}: trades={trades}, avg_return={avg_ret * 100:.2f}%, win_rate={win_rate * 100:.1f}%"
             )
-            log_lines.append(
-                f"{sym},{trades},{avg_ret * 100:.2f},{win_rate * 100:.1f}"
-            )
+            log_lines.append(f"{sym},{trades},{avg_ret * 100:.2f},{win_rate * 100:.1f}")
         Path("backtest_results.txt").write_text("\n".join(log_lines))
 
     if notify:
@@ -206,36 +182,15 @@ def main() -> None:
         help="Slow EMA period",
     )
     parser.add_argument(
-        "--higher-int",
-        default="1d",
-        help="Interval for higher timeframe (e.g. 1d)",
-    )
-    parser.add_argument(
-        "--lower-int",
+        "--interval",
         default="15m",
-        help="Interval for lower timeframe (e.g. 15m)",
-    )
-    parser.add_argument(
-        "--bt-period",
-        default="6mo",
-        help="Period of historical data for backtesting",
-    )
-    parser.add_argument(
-        "--bt-interval",
-        default="1d",
-        help="Interval of data for backtesting",
+        help="Candle interval for intraday scan and backtest",
     )
     parser.add_argument(
         "--offset",
         type=int,
         default=1,
         help="Higher timeframe offset in candles",
-    )
-    parser.add_argument(
-        "--lower-offset",
-        type=int,
-        default=0,
-        help="Lower timeframe offset in candles",
     )
     parser.add_argument(
         "--freq",
@@ -268,12 +223,8 @@ def main() -> None:
             debug=args.debug,
             fast=args.fast,
             slow=args.slow,
-            higher_int=args.higher_int,
-            lower_int=args.lower_int,
-            bt_period=args.bt_period,
             offset=args.offset,
-            lower_offset=args.lower_offset,
-            bt_interval=args.bt_interval,
+            interval=args.interval,
         )
     elif args.schedule:
         schedule_scan(
@@ -286,12 +237,8 @@ def main() -> None:
             debug=args.debug,
             fast=args.fast,
             slow=args.slow,
-            higher_int=args.higher_int,
-            lower_int=args.lower_int,
-            bt_period=args.bt_period,
             offset=args.offset,
-            lower_offset=args.lower_offset,
-            bt_interval=args.bt_interval,
+            interval=args.interval,
         )
     else:
         run(
@@ -303,12 +250,8 @@ def main() -> None:
             debug=args.debug,
             fast=args.fast,
             slow=args.slow,
-            higher_int=args.higher_int,
-            lower_int=args.lower_int,
-            bt_period=args.bt_period,
             offset=args.offset,
-            lower_offset=args.lower_offset,
-            bt_interval=args.bt_interval,
+            interval=args.interval,
         )
 
 

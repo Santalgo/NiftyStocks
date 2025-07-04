@@ -11,11 +11,11 @@ from nse_fno_scanner.dma_filter import compute_dmas, filter_by_dma
 def test_compute_dmas():
     data = pd.DataFrame({"Close": range(1, 61)})
     df = compute_dmas(data)
-    assert "EMA20" in df.columns and "EMA50" in df.columns
-    assert not df["EMA20"].isna().all()
-    assert not df["EMA50"].isna().all()
+    assert "DMA20" in df.columns and "DMA50" in df.columns
+    assert not df["DMA20"].isna().all()
+    assert not df["DMA50"].isna().all()
     last = df.iloc[-1]
-    assert last["EMA20"] > last["EMA50"]
+    assert last["DMA20"] > last["DMA50"]
 
 
 def test_filter_by_dma_handles_multiindex(monkeypatch):
@@ -23,29 +23,20 @@ def test_filter_by_dma_handles_multiindex(monkeypatch):
     close = pd.Series(range(1, 61), index=dates)
     daily = pd.DataFrame({("Close", "TEST"): close, ("Open", "TEST"): close})
 
-    idates = pd.date_range("2020-03-01", periods=60, freq="15T")
-    iclose = pd.Series(range(1, 61), index=idates)
-    intraday = pd.DataFrame({("Close", "TEST"): iclose})
-
     def fake_download(symbol, *args, **kwargs):
-        if kwargs.get("interval") == "1d":
-            return daily
-        return intraday
+        return daily
 
     monkeypatch.setattr(yf, "download", fake_download)
     out = filter_by_dma(["TEST"], offset=1)
     assert out == ["TEST"]
 
 
-def test_filter_by_dma_lower_offset(monkeypatch):
+def test_filter_by_dma_offset(monkeypatch):
     daily = pd.DataFrame({"Close": range(1, 61), "Open": range(1, 61)})
-    intraday = pd.DataFrame({"Close": range(1, 61)})
 
     def fake_download(symbol, *args, **kwargs):
-        if kwargs.get("interval") == "1d":
-            return daily
-        return intraday
+        return daily
 
     monkeypatch.setattr(yf, "download", fake_download)
-    out = filter_by_dma(["TEST"], offset=1, lower_offset=1)
+    out = filter_by_dma(["TEST"], offset=1)
     assert out == ["TEST"]

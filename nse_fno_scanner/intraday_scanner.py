@@ -35,22 +35,21 @@ def pattern_confirmed(df: pd.DataFrame) -> bool:
         return False
     c = df["Close"]
     return (
-        c.iloc[-2] > c.iloc[-3]
-        and c.iloc[-1] > c.iloc[-2]
-        and c.iloc[-3] > c.iloc[-4]
+        c.iloc[-2] > c.iloc[-3] and c.iloc[-1] > c.iloc[-2] and c.iloc[-3] > c.iloc[-4]
     )
 
 
-def intraday_scan(symbols: Iterable[str]) -> List[str]:
+def intraday_scan(symbols: Iterable[str], interval: str = "15m") -> List[str]:
     shortlisted = []
     for symbol in tqdm(list(symbols), desc="Intraday scan"):
         try:
             logger.debug("Downloading intraday data for %s", symbol)
             df = yf.download(
                 f"{symbol}.NS",
-                period="3d",
-                interval="15m",
+                period="2d",
+                interval=interval,
                 progress=False,
+                auto_adjust=False,
                 multi_level_index=False,
             )
             if isinstance(df.columns, pd.MultiIndex):
@@ -58,7 +57,7 @@ def intraday_scan(symbols: Iterable[str]) -> List[str]:
         except Exception as exc:
             logger.debug("Failed to download %s: %s", symbol, exc)
             continue
-        if df.empty or len(df) < 50:
+        if df.empty or len(df) < 5:
             continue
         df = compute_emas(df)
         last_row = df.iloc[-1]
