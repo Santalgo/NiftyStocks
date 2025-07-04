@@ -4,3 +4,5 @@ numpy
 tqdm
 python-telegram-bot
 gdown
+
+backtrader
