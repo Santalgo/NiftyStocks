@@ -1,116 +1,91 @@
-"""Backtest the EMA crossover strategy using the ``backtrader`` library."""
+"""Simple backtesting utilities for the intraday EMA pattern."""
 
-from typing import Tuple
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import time
+from typing import Iterable, List, Tuple
 
 import logging
 
-import yfinance as yf
 import pandas as pd
-import backtrader as bt
+import yfinance as yf
+
+from .intraday_scanner import compute_emas, pattern_confirmed
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class Trade:
+    date: pd.Timestamp
+    entry: float
+    exit: float
+    pct_return: float
 
-class EMABacktestStrategy(bt.Strategy):
-    """Simple strategy implementing the intraday EMA pattern.
 
-    The strategy buys when the fast EMA is above the slow EMA and the last
-    four closes form a rising pattern. The position is closed on the next bar
-    so that each trade lasts exactly one day.
-    """
-
-    params = dict(fast=20, slow=50)
-
-    def __init__(self) -> None:
-        self.ema_fast = bt.indicators.EMA(self.data.close, period=self.p.fast)
-        self.ema_slow = bt.indicators.EMA(self.data.close, period=self.p.slow)
-        self.entry_price = None
-        self.trades: list[float] = []
-
-    def next(self) -> None:
-        if self.entry_price is not None:
-            exit_price = self.data.close[0]
-            if self.entry_price:
-                ret = (exit_price - self.entry_price) / self.entry_price
-                if abs(ret) < 10:
-                    ret = round(ret, 4)
-                    self.trades.append(ret)
-                    logger.debug(
-                        "Trade %s -> %s: entry %.2f exit %.2f return %.2f%%",
-                        self.data.datetime.date(-1),
-                        self.data.datetime.date(0),
-                        self.entry_price,
-                        exit_price,
-                        ret * 100,
-                    )
-            self.entry_price = None
-            return
-
-        if len(self.data) < 5:
-            return
-        if self.ema_fast[0] >= self.ema_slow[0]:
-            closes = [self.data.close[-i] for i in range(1, 5)]
-            if closes[0] > closes[1] > closes[2] > closes[3]:
-                self.entry_price = self.data.close[0]
+def _download(symbol: str, days: int, interval: str) -> pd.DataFrame:
+    logger.debug("Downloading backtest data for %s", symbol)
+    df = yf.download(
+        f"{symbol}.NS",
+        period=f"{days}d",
+        interval=interval,
+        progress=False,
+        auto_adjust=False,
+        multi_level_index=False,
+    )
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+    return df
 
 
 def backtest_strategy(
     symbol: str,
-    period: str = "6mo",
+    *,
+    days: int = 5,
+    interval: str = "15m",
+    start_hour: int | None = None,
     fast: int = 20,
     slow: int = 50,
-    interval: str = "1d",
 ) -> Tuple[int, float, float]:
-    """Backtest the intraday strategy on daily data for a symbol.
+    """Backtest the intraday EMA pattern for ``symbol``.
 
-    Parameters
-    ----------
-    symbol : str
-        Equity ticker symbol without NSE suffix.
-    period : str, optional
-        Period to download historical data for (default "6mo").
-    interval : str, optional
-        Data interval for the download (default ``"1d"``).
-    fast : int, optional
-        Fast EMA period for the strategy.
-    slow : int, optional
-        Slow EMA period for the strategy.
-
-    Returns
-    -------
-    Tuple[int, float, float]
-        Number of trades, win rate as a fraction between 0 and 1,
-        average return per trade as a decimal fraction.
+    Each day where the pattern occurs triggers a trade: buy on the first candle
+    and exit on the last candle of the day.
     """
-    try:
-        logger.debug("Downloading backtest data for %s", symbol)
-        df = yf.download(
-            f"{symbol}.NS",
-            period=period,
-            interval=interval,
-            progress=False,
-            multi_level_index=False,
-        )
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-        if not isinstance(df.index, pd.DatetimeIndex):
-            df.index = pd.date_range("2000-01-01", periods=len(df), freq="D")
-    except Exception as exc:
-        logger.debug("Failed to download %s: %s", symbol, exc)
-        return 0, 0.0, 0.0
-    if df.empty or len(df) < 50:
+
+    df = _download(symbol, days, interval)
+    if df.empty:
         return 0, 0.0, 0.0
 
-    cerebro = bt.Cerebro()
-    datafeed = bt.feeds.PandasData(dataname=df)
-    cerebro.adddata(datafeed)
-    cerebro.addstrategy(EMABacktestStrategy, fast=fast, slow=slow)
-    results = cerebro.run()
-    strat = results[0]
-    trades = strat.trades
+    df.index = pd.DatetimeIndex(df.index)
+    trades: List[Trade] = []
+
+    for day, day_df in df.groupby(df.index.date):
+        if start_hour is not None:
+            day_df = day_df[day_df.index.hour >= start_hour]
+        if len(day_df) < max(fast, slow, 5):
+            continue
+        day_df = compute_emas(day_df, fast=fast, slow=slow)
+        if day_df.iloc[-1][f"EMA{fast}"] >= day_df.iloc[-1][
+            f"EMA{slow}"
+        ] and pattern_confirmed(day_df):
+            entry = day_df["Open"].iloc[0]
+            exit_price = day_df["Close"].iloc[-1]
+            ret = (exit_price - entry) / entry
+            trades.append(Trade(pd.Timestamp(day), entry, exit_price, ret))
+            logger.debug(
+                "Trade %s: entry %.2f exit %.2f return %.2f%%",
+                day,
+                entry,
+                exit_price,
+                ret * 100,
+            )
+
     if not trades:
         return 0, 0.0, 0.0
-    win_rate = sum(r > 0 for r in trades) / len(trades)
-    avg_return = sum(trades) / len(trades)
+
+    returns = [t.pct_return for t in trades]
+    win_rate = sum(r > 0 for r in returns) / len(returns)
+    avg_return = sum(returns) / len(returns)
     return len(trades), win_rate, avg_return

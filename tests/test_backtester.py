@@ -9,7 +9,7 @@ from nse_fno_scanner import backtest_strategy
 
 
 def test_backtest_strategy(monkeypatch):
-    data = pd.DataFrame({"Close": list(range(1, 120))})
+    data = pd.DataFrame({"Open": list(range(1, 120)), "Close": list(range(1, 120))})
 
     def fake_download(*args, **kwargs):
         return data

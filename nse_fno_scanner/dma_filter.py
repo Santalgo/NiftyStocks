@@ -1,4 +1,4 @@
-"""Utilities for filtering stocks using daily and intraday moving averages."""
+"""Utilities for filtering stocks using simple daily moving averages."""
 
 from typing import Iterable, List
 
@@ -8,17 +8,16 @@ import pandas as pd
 import yfinance as yf
 from tqdm import tqdm
 
-from .intraday_scanner import compute_emas, pattern_confirmed
 
 logger = logging.getLogger(__name__)
 
 
 def compute_dmas(data: pd.DataFrame, fast: int = 20, slow: int = 50) -> pd.DataFrame:
-    """Compute exponential moving averages for the given periods."""
+    """Return ``data`` with simple moving averages added."""
 
     df = data.copy()
-    df[f"EMA{fast}"] = df["Close"].ewm(span=fast, adjust=False).mean()
-    df[f"EMA{slow}"] = df["Close"].ewm(span=slow, adjust=False).mean()
+    df[f"DMA{fast}"] = df["Close"].rolling(fast).mean()
+    df[f"DMA{slow}"] = df["Close"].rolling(slow).mean()
     return df
 
 
@@ -28,13 +27,9 @@ def filter_by_dma(
     *,
     fast_period: int = 20,
     slow_period: int = 50,
-    higher_interval: str = "1d",
-    lower_interval: str = "15m",
-    higher_period: str = "100d",
-    lower_period: str = "3d",
-    lower_offset: int = 0,
+    period_days: int = 250,
 ) -> List[str]:
-    """Filter symbols using daily and intraday moving averages.
+    """Filter symbols using daily moving averages.
 
     Parameters
     ----------
@@ -44,25 +39,16 @@ def filter_by_dma(
         Number of latest higher timeframe candles to ignore when checking
         moving averages.
     fast_period : int, optional
-        Period for the fast EMA. Defaults to ``20``.
+        Period for the fast DMA. Defaults to ``20``.
     slow_period : int, optional
-        Period for the slow EMA. Defaults to ``50``.
-    higher_interval : str, optional
-        Time interval for the higher timeframe download. Defaults to ``1d``.
-    lower_interval : str, optional
-        Time interval for the lower timeframe download. Defaults to ``15m``.
-    higher_period : str, optional
-        Historical period for the higher timeframe download. Defaults to ``100d``.
-    lower_period : str, optional
-        Historical period for the lower timeframe download. Defaults to ``3d``.
-    lower_offset : int, optional
-        Number of most recent lower timeframe candles to ignore when evaluating
-        intraday conditions. Defaults to ``0``.
+        Period for the slow DMA. Defaults to ``50``.
+    period_days : int, optional
+        Number of days of history to download. Defaults to ``250``.
 
     Returns
     -------
     List[str]
-        Symbols passing both daily and intraday conditions.
+        Symbols where the fast DMA is above the slow DMA.
     """
     shortlisted = []
     for symbol in tqdm(list(symbols), desc="DMA filter"):
@@ -70,9 +56,10 @@ def filter_by_dma(
             logger.debug("Downloading daily data for %s", symbol)
             df = yf.download(
                 f"{symbol}.NS",
-                period=higher_period,
-                interval=higher_interval,
+                period=f"{period_days}d",
+                interval="1d",
                 progress=False,
+                auto_adjust=False,
                 multi_level_index=False,
             )
             if isinstance(df.columns, pd.MultiIndex):
@@ -83,33 +70,8 @@ def filter_by_dma(
         if df.empty or len(df) < slow_period + offset:
             continue
         df = compute_dmas(df, fast=fast_period, slow=slow_period)
-        row = df.iloc[-(offset + 1)]  # exclude recent `offset` days
-        if row[f"EMA{fast_period}"] <= row[f"EMA{slow_period}"]:
-            continue
-
-        try:
-            logger.debug("Downloading intraday data for %s", symbol)
-            intra = yf.download(
-                f"{symbol}.NS",
-                period=lower_period,
-                interval=lower_interval,
-                progress=False,
-                multi_level_index=False,
-            )
-            if isinstance(intra.columns, pd.MultiIndex):
-                intra.columns = intra.columns.get_level_values(0)
-        except Exception as exc:
-            logger.debug("Failed to download intraday %s: %s", symbol, exc)
-            continue
-        if intra.empty or len(intra) < slow_period or len(intra) <= lower_offset + 4:
-            continue
-        intra = compute_emas(intra, fast=fast_period, slow=slow_period)
-        subset = intra.iloc[: -(lower_offset)] if lower_offset else intra
-        last_row = intra.iloc[-(lower_offset + 1)]
-        if (
-            last_row[f"EMA{fast_period}"] >= last_row[f"EMA{slow_period}"]
-            and pattern_confirmed(subset)
-        ):
+        row = df.iloc[-(offset + 1)]
+        if row[f"DMA{fast_period}"] > row[f"DMA{slow_period}"]:
             shortlisted.append(symbol)
             logger.debug("%s passed DMA filter", symbol)
     return shortlisted
