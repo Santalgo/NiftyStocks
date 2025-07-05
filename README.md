@@ -90,6 +90,19 @@ from nse_fno_scanner import printf
 printf("Scanning %s symbols", len(symbols))
 ```
 
+### Market simulation
+
+The package includes helper functions to simulate a simple intraday strategy on
+multiple stocks. Use ``simulate_market`` to generate trade logs and PnL in a
+DataFrame and ``plot_pnl`` to visualise the cumulative returns.
+
+```python
+from nse_fno_scanner import simulate_market, plot_pnl
+
+shortlisted, df = simulate_market(["RELIANCE", "TCS"], days=10)
+plot_pnl(df)
+```
+
 ## Google Colab
 
 You can try the scanner in the browser using

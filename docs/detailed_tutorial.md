@@ -120,4 +120,18 @@ These options allow experimentation with different strategy parameters.
    ```
 
 This sequence demonstrates how the tool can fit into a daily trading routine –
-continuous monitoring followed by deeper analysis on demand.
+ continuous monitoring followed by deeper analysis on demand.
+
+## 9. Simulating trades
+
+For research purposes you can simulate the intraday strategy over a list of
+symbols. The ``simulate_market`` function returns both the shortlisted stocks
+and a DataFrame containing trade logs and cumulative PnL. ``plot_pnl`` provides
+a quick visualisation.
+
+```python
+from nse_fno_scanner import simulate_market, plot_pnl
+
+shortlist, df = simulate_market(["RELIANCE", "TCS"], days=10)
+plot_pnl(df)
+```

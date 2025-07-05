@@ -47,7 +47,8 @@ def backtest_strategy(
     start_hour: int | None = None,
     fast: int = 20,
     slow: int = 50,
-) -> Tuple[int, float, float]:
+    return_trades: bool = False,
+) -> Tuple[int, float, float] | Tuple[int, float, float, List[Trade]]:
     """Backtest the intraday EMA pattern for ``symbol``.
 
     Each day where the pattern occurs triggers a trade: buy on the first candle
@@ -88,4 +89,6 @@ def backtest_strategy(
     returns = [t.pct_return for t in trades]
     win_rate = sum(r > 0 for r in returns) / len(returns)
     avg_return = sum(returns) / len(returns)
+    if return_trades:
+        return len(trades), win_rate, avg_return, trades
     return len(trades), win_rate, avg_return

@@ -4,6 +4,7 @@ from .fetch_fno_list import fetch_fno_list
 from .dma_filter import filter_by_dma
 from .intraday_scanner import intraday_scan
 from .backtester import backtest_strategy
+from .simulator import simulate_market, plot_pnl
 from .market_predictor import (
     predict_index_movement,
     compare_with_indices,
@@ -17,6 +18,8 @@ __all__ = [
     "filter_by_dma",
     "intraday_scan",
     "backtest_strategy",
+    "simulate_market",
+    "plot_pnl",
     "predict_index_movement",
     "compare_with_indices",
     "send_telegram_message",

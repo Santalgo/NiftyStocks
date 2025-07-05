@@ -10,6 +10,7 @@ setup(
         "numpy",
         "tqdm",
         "gdown",
+        "matplotlib",
     ],
     entry_points={
         "console_scripts": ["nse-fno-scan=run_scan:main"],
