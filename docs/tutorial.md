@@ -30,3 +30,15 @@ Or pass a URL or local file via `--fno-url` if you maintain your own list.
 
 For interactive exploration open `NiftyStocks_Colab.ipynb` on Google Colab and
 execute the notebook cells sequentially.
+
+### Simulating trades
+
+Within a notebook you can run a quick simulation to see how the intraday
+strategy performs:
+
+```python
+from nse_fno_scanner import simulate_market, plot_pnl
+
+shortlist, df = simulate_market(["RELIANCE", "TCS"], days=10)
+plot_pnl(df)
+```
