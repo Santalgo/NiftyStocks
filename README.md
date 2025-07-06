@@ -16,7 +16,8 @@ line, inside a Jupyter notebook or in Google Colab.
   tickers when you want to focus on a subset of stocks.
 * **Research and backtesting** – import the package in your own Python scripts
   to experiment with the moving‑average filters or historical data used by the
-  scanner.
+  scanner. Example code is available in
+  [docs/backtesting_example.md](docs/backtesting_example.md).
 
 ## Usage
 
