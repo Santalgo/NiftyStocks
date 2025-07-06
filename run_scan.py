@@ -38,6 +38,10 @@ def run(
     *,
     offset: int = 1,
     interval: str = "15m",
+    mode: str = "both",
+    bt_mode: str | None = None,
+    bt_period: str = "6mo",
+    bt_interval: str | None = None,
 ) -> list[str]:
     """Run the scan and optionally notify/backtest.
 
@@ -51,8 +55,16 @@ def run(
         Number of higher timeframe candles to ignore when applying moving
         average conditions.
     interval : str, optional
-        Data interval for intraday scanning and backtesting.
-
+        Data interval for intraday scanning.
+    mode : {"daily", "intraday", "both"}, optional
+        Which scans to run. Defaults to "both".
+    bt_mode : {"daily", "intraday", "both"}, optional
+        Strategy mode for the backtester. If ``None`` the scan ``mode`` is used.
+    bt_period : str, optional
+        Data period for the backtester downloads.
+    bt_interval : str, optional
+        Intraday interval for the backtester. Defaults to ``interval``.
+    
     Returns
     -------
     list[str]
@@ -65,10 +77,13 @@ def run(
         logging.debug("Fetching F&O list")
         symbols = fetch_fno_list(url=fno_url) if fno_url else fetch_fno_list()
 
-    logging.debug("Running daily DMA filter on %d symbols", len(symbols))
-    symbols = filter_by_dma(symbols, offset=offset, fast_period=fast, slow_period=slow)
-    logging.debug("Running intraday scan on %d symbols", len(symbols))
-    results = intraday_scan(symbols, interval=interval)
+    results: list[str] = symbols
+    if mode in {"daily", "both"}:
+        logging.debug("Running daily DMA filter on %d symbols", len(results))
+        results = filter_by_dma(results, offset=offset, fast_period=fast, slow_period=slow)
+    if mode in {"intraday", "both"}:
+        logging.debug("Running intraday scan on %d symbols", len(results))
+        results = intraday_scan(results, interval=interval)
 
     output.write_text("\n".join(results))
     print(f"Shortlisted stocks ({len(results)}):")
@@ -78,11 +93,14 @@ def run(
     if backtest:
         print("\nBacktest results:")
         log_lines = []
+        bt_int = bt_interval or interval
+        mode_to_use = bt_mode or mode
         for sym in results:
             trades, win_rate, avg_ret = backtest_strategy(
                 sym,
-                days=5,
-                interval=interval,
+                period=bt_period,
+                interval=bt_int,
+                mode=mode_to_use,
                 fast=fast,
                 slow=slow,
             )
@@ -187,6 +205,26 @@ def main() -> None:
         help="Candle interval for intraday scan and backtest",
     )
     parser.add_argument(
+        "--mode",
+        choices=["daily", "intraday", "both"],
+        default="both",
+        help="Which scans to run",
+    )
+    parser.add_argument(
+        "--bt-mode",
+        choices=["daily", "intraday", "both"],
+        help="Strategy mode for backtester (default: same as --mode)",
+    )
+    parser.add_argument(
+        "--bt-period",
+        default="6mo",
+        help="Data period for the backtester",
+    )
+    parser.add_argument(
+        "--bt-interval",
+        help="Interval for intraday backtest (default: --interval)",
+    )
+    parser.add_argument(
         "--offset",
         type=int,
         default=1,
@@ -225,6 +263,10 @@ def main() -> None:
             slow=args.slow,
             offset=args.offset,
             interval=args.interval,
+            mode=args.mode,
+            bt_mode=args.bt_mode,
+            bt_period=args.bt_period,
+            bt_interval=args.bt_interval,
         )
     elif args.schedule:
         schedule_scan(
@@ -239,6 +281,10 @@ def main() -> None:
             slow=args.slow,
             offset=args.offset,
             interval=args.interval,
+            mode=args.mode,
+            bt_mode=args.bt_mode,
+            bt_period=args.bt_period,
+            bt_interval=args.bt_interval,
         )
     else:
         run(
@@ -252,6 +298,10 @@ def main() -> None:
             slow=args.slow,
             offset=args.offset,
             interval=args.interval,
+            mode=args.mode,
+            bt_mode=args.bt_mode,
+            bt_period=args.bt_period,
+            bt_interval=args.bt_interval,
         )
 
 

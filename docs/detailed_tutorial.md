@@ -29,8 +29,8 @@ Typical use cases:
 
 ## 3. Backtesting shortlisted stocks
 
-Pass `--backtest` to run a simple moving-average backtest on all shortlisted
-symbols. The backtester uses daily data from Yahoo Finance.
+Pass `--backtest` to run a moving-average backtest on all shortlisted
+symbols. Use `--bt-mode` to choose `daily`, `intraday` or `both`.
 
 ```bash
 python run_scan.py --symbols=RELIANCE,INFY --backtest

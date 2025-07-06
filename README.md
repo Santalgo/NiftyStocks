@@ -65,6 +65,8 @@ Additional options are available:
 --debug    Enable debug logging output
 --bt-period  Period of data for the backtester (default "6mo")
 --bt-interval  Data interval for the backtester
+--mode         Run only daily, intraday or both scans (default "both")
+--bt-mode      Backtest mode (default same as --mode)
 --offset       Higher timeframe offset when checking DMAs
 --lower-offset Lower timeframe offset for intraday pattern
 --schedule-pred  Run scan periodically and print predictions
