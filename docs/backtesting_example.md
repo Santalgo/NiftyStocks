@@ -52,6 +52,8 @@ For a lightweight alternative you can use :func:`nse_fno_scanner.backtest_strate
 ```python
 from nse_fno_scanner import backtest_strategy
 
-trades, win_rate, avg_ret = backtest_strategy("RELIANCE", days=10, interval="15m")
+trades, win_rate, avg_ret = backtest_strategy(
+    "RELIANCE", period="30d", interval="15m", mode="intraday"
+)
 print(trades, win_rate, avg_ret)
 ```
