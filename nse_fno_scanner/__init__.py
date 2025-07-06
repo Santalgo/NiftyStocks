@@ -5,6 +5,7 @@ from .dma_filter import filter_by_dma
 from .intraday_scanner import intraday_scan
 from .backtester import backtest_strategy
 from .simulator import simulate_market, plot_pnl
+from .ohlc import fetch_ohlc
 from .market_predictor import (
     predict_index_movement,
     compare_with_indices,
@@ -20,6 +21,7 @@ __all__ = [
     "backtest_strategy",
     "simulate_market",
     "plot_pnl",
+    "fetch_ohlc",
     "predict_index_movement",
     "compare_with_indices",
     "send_telegram_message",
