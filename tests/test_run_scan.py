@@ -10,7 +10,7 @@ def test_run_with_notify(monkeypatch, tmp_path):
     monkeypatch.setattr(run_scan, "fetch_fno_list", lambda: ["A"])
     monkeypatch.setattr(run_scan, "filter_by_dma", lambda syms, **kw: syms)
     monkeypatch.setattr(run_scan, "intraday_scan", lambda syms, **kw: ["A"])
-    monkeypatch.setattr(run_scan, "backtest_strategy", lambda sym: (0, 0.0, 0.0))
+    monkeypatch.setattr(run_scan, "backtest_strategy", lambda sym, **kw: (0, 0.0, 0.0))
 
     sent = {}
 

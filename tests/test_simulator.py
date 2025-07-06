@@ -15,7 +15,7 @@ def test_simulate_market(monkeypatch):
         return data
 
     monkeypatch.setattr(yf, "download", fake_download)
-    shortlist, df = simulate_market(["AAA", "BBB"], days=2)
+    shortlist, df = simulate_market(["AAA", "BBB"], period="2d")
     assert shortlist == ["AAA", "BBB"]
     assert not df.empty
     assert "cum_pnl" in df.columns
