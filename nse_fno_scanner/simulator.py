@@ -14,7 +14,7 @@ from .backtester import backtest_strategy, Trade
 def simulate_market(
     symbols: Iterable[str],
     *,
-    days: int = 5,
+    period: str = "6mo",
     interval: str = "15m",
     fast: int = 20,
     slow: int = 50,
@@ -40,8 +40,9 @@ def simulate_market(
     for sym in symbols:
         trades, win_rate, avg_ret, trade_log = backtest_strategy(
             sym,
-            days=days,
+            period=period,
             interval=interval,
+            mode="intraday",
             fast=fast,
             slow=slow,
             return_trades=True,
