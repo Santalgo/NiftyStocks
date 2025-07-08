@@ -135,3 +135,15 @@ from nse_fno_scanner import simulate_market, plot_pnl
 shortlist, df = simulate_market(["RELIANCE", "TCS"], days=10)
 plot_pnl(df)
 ```
+
+## 10. Custom strategies
+
+You can plug in your own screening logic by implementing a function that
+accepts and returns a list of symbols. Provide the function using the
+``--strategy`` option in ``module:function`` form:
+
+```bash
+python run_scan.py --strategy=my_mod:my_strategy
+```
+
+The custom function will run after the default daily and intraday checks.

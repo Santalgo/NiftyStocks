@@ -42,3 +42,12 @@ from nse_fno_scanner import simulate_market, plot_pnl
 shortlist, df = simulate_market(["RELIANCE", "TCS"], days=10)
 plot_pnl(df)
 ```
+
+### Custom strategies
+
+To apply your own scan logic, create a function that accepts and returns a list
+of symbols and pass it to ``run_scan.py`` using ``--strategy``:
+
+```bash
+python run_scan.py --strategy=my_mod:my_strategy
+```

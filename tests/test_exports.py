@@ -6,6 +6,7 @@ from nse_fno_scanner import (
     simulate_market,
     plot_pnl,
     schedule_scan_with_prediction,
+    load_strategy,
     printf,
 )
 
@@ -18,4 +19,5 @@ def test_root_exports_callable():
     assert callable(simulate_market)
     assert callable(plot_pnl)
     assert callable(schedule_scan_with_prediction)
+    assert callable(load_strategy)
     assert callable(printf)

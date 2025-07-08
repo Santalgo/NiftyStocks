@@ -106,6 +106,18 @@ shortlisted, df = simulate_market(["RELIANCE", "TCS"], days=10)
 plot_pnl(df)
 ```
 
+### Custom strategies
+
+You can add your own screening logic by writing a callable that accepts and
+returns a list of symbols. Pass the function via ``--strategy`` using the
+``module:function`` notation:
+
+```bash
+python run_scan.py --strategy=my_mod:my_strategy
+```
+
+Custom strategies run after the built‑in daily and intraday checks.
+
 ## Google Colab
 
 You can try the scanner in the browser using

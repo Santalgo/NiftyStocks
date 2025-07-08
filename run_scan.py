@@ -9,6 +9,7 @@ from nse_fno_scanner.fetch_fno_list import fetch_fno_list, FNO_LIST_URL
 from nse_fno_scanner.dma_filter import filter_by_dma
 from nse_fno_scanner.intraday_scanner import intraday_scan
 from nse_fno_scanner.backtester import backtest_strategy
+from nse_fno_scanner.strategy_loader import load_strategy
 from nse_fno_scanner.market_predictor import (
     predict_index_movement,
     compare_with_indices,
@@ -42,6 +43,7 @@ def run(
     bt_mode: str | None = None,
     bt_period: str = "6mo",
     bt_interval: str | None = None,
+    extra_strategies: list[callable] | None = None,
 ) -> list[str]:
     """Run the scan and optionally notify/backtest.
 
@@ -64,6 +66,9 @@ def run(
         Data period for the backtester downloads.
     bt_interval : str, optional
         Intraday interval for the backtester. Defaults to ``interval``.
+    extra_strategies : list[callable], optional
+        Additional strategy callables applied after the built-in scans. Each
+        callable receives and returns a list of symbols.
     
     Returns
     -------
@@ -84,6 +89,11 @@ def run(
     if mode in {"intraday", "both"}:
         logging.debug("Running intraday scan on %d symbols", len(results))
         results = intraday_scan(results, interval=interval)
+
+    if extra_strategies:
+        for strat in extra_strategies:
+            logging.debug("Running custom strategy %s on %d symbols", strat, len(results))
+            results = strat(results)
 
     output.write_text("\n".join(results))
     print(f"Shortlisted stocks ({len(results)}):")
@@ -249,7 +259,14 @@ def main() -> None:
         action="store_true",
         help="Enable debug logging",
     )
+    parser.add_argument(
+        "--strategy",
+        action="append",
+        dest="strategies",
+        help="Import path to a custom strategy callable (module:function)",
+    )
     args = parser.parse_args()
+    extra_strats = [load_strategy(p) for p in args.strategies] if args.strategies else None
     if args.schedule_pred:
         schedule_scan_with_prediction(
             freq_minutes=args.freq,
@@ -267,6 +284,7 @@ def main() -> None:
             bt_mode=args.bt_mode,
             bt_period=args.bt_period,
             bt_interval=args.bt_interval,
+            extra_strategies=extra_strats,
         )
     elif args.schedule:
         schedule_scan(
@@ -285,6 +303,7 @@ def main() -> None:
             bt_mode=args.bt_mode,
             bt_period=args.bt_period,
             bt_interval=args.bt_interval,
+            extra_strategies=extra_strats,
         )
     else:
         run(
@@ -302,6 +321,7 @@ def main() -> None:
             bt_mode=args.bt_mode,
             bt_period=args.bt_period,
             bt_interval=args.bt_interval,
+            extra_strategies=extra_strats,
         )
 
 
