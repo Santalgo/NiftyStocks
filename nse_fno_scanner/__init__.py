@@ -12,6 +12,7 @@ from .market_predictor import (
     send_telegram_message,
 )
 from .utils import printf
+from .strategy_loader import load_strategy
 from run_scan import schedule_scan_with_prediction
 
 __all__ = [
@@ -26,5 +27,6 @@ __all__ = [
     "compare_with_indices",
     "send_telegram_message",
     "schedule_scan_with_prediction",
+    "load_strategy",
     "printf",
 ]

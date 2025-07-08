@@ -28,3 +28,20 @@ def test_run_with_notify(monkeypatch, tmp_path):
     out = tmp_path / "out.txt"
     run_scan.run(out, backtest=False, notify=True)
     assert "Market up" in sent["msg"]
+
+
+def test_run_with_custom_strategy(monkeypatch, tmp_path):
+    monkeypatch.setattr(run_scan, "fetch_fno_list", lambda: ["A", "B"])
+    monkeypatch.setattr(run_scan, "filter_by_dma", lambda syms, **kw: syms)
+    monkeypatch.setattr(run_scan, "intraday_scan", lambda syms, **kw: syms)
+
+    called = {}
+
+    def strat(symbols):
+        called["syms"] = symbols
+        return [s for s in symbols if s == "B"]
+
+    out = tmp_path / "out.txt"
+    res = run_scan.run(out, extra_strategies=[strat])
+    assert res == ["B"]
+    assert called["syms"] == ["A", "B"]
