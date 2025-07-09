@@ -116,7 +116,9 @@ returns a list of symbols. Pass the function via ``--strategy`` using the
 python run_scan.py --strategy=my_mod:my_strategy
 ```
 
-Custom strategies run after the built‑in daily and intraday checks.
+Custom strategies run after the built‑in daily and intraday checks. A
+step-by-step example is available in
+[docs/custom_strategy_example.md](docs/custom_strategy_example.md).
 
 ## Google Colab
 

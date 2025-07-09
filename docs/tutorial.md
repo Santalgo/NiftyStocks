@@ -51,3 +51,5 @@ of symbols and pass it to ``run_scan.py`` using ``--strategy``:
 ```bash
 python run_scan.py --strategy=my_mod:my_strategy
 ```
+See [custom_strategy_example.md](custom_strategy_example.md) for a complete
+walkthrough of creating the file and running the command.
